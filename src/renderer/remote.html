@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0c0e13">
+<title>MusicPlayer · Control</title>
+<style>
+  :root { --accent: #ff5c8a; --accent2: #ffb347; --bg: #0c0e13; --panel: #151922; --line: #252b38; --text: #eef0f5; --muted: #8b91a3; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body { padding: env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 12px); min-height: 100vh; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  input { font: inherit; color: inherit; }
+  svg { width: 22px; height: 22px; display: block; }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 0 16px; }
+  header { display: flex; align-items: center; gap: 10px; padding: 14px 0 6px; color: var(--muted); font-size: 13px; }
+  header .dot { width: 8px; height: 8px; border-radius: 50%; background: #3fbf75; box-shadow: 0 0 8px #3fbf75; }
+  header .dot.off { background: #d8445f; box-shadow: 0 0 8px #d8445f; }
+  .now { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 14px 0 8px; }
+  .art { width: min(72vw, 300px); aspect-ratio: 1; border-radius: 18px; background: var(--panel) center/cover no-repeat; box-shadow: 0 20px 50px rgba(0,0,0,.45);
+    display: grid; place-items: center; color: var(--muted); font-size: 60px; overflow: hidden; }
+  .art.wide { aspect-ratio: 16/9; width: min(88vw, 420px); }
+  .meta { text-align: center; width: 100%; }
+  .title { font-size: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .artist { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .seek { width: 100%; display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  input[type=range] { -webkit-appearance: none; appearance: none; flex: 1; height: 28px; background: transparent; --p: 0%; }
+  input[type=range]::-webkit-slider-runnable-track { height: 5px; border-radius: 5px; background: linear-gradient(90deg, var(--accent) var(--p), var(--line) var(--p)); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #fff; margin-top: -6.5px; }
+  .controls { display: flex; align-items: center; justify-content: center; gap: 18px; }
+  .controls .sm { width: 44px; height: 44px; display: grid; place-items: center; color: var(--muted); border-radius: 50%; }
+  .controls .sm.on { color: var(--accent); }
+  .controls .md { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 50%; }
+  .controls .md svg { width: 30px; height: 30px; }
+  .play { width: 74px; height: 74px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: grid; place-items: center; color: #fff;
+    box-shadow: 0 10px 30px color-mix(in srgb, var(--accent) 45%, transparent); }
+  .play svg { width: 32px; height: 32px; }
+  .vol { display: flex; align-items: center; gap: 12px; width: 100%; color: var(--muted); }
+  .tabs { display: flex; gap: 6px; background: var(--panel); border-radius: 12px; padding: 4px; margin: 18px 0 10px; }
+  .tabs button { flex: 1; padding: 9px; border-radius: 9px; color: var(--muted); font-weight: 600; }
+  .tabs button.on { background: var(--line); color: var(--text); }
+  .searchbar { display: flex; gap: 8px; margin-bottom: 10px; }
+  .searchbar input { flex: 1; min-width: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 11px 14px; outline: 0; }
+  .searchbar input:focus { border-color: var(--accent); }
+  .src { display: flex; background: var(--panel); border-radius: 12px; padding: 3px; }
+  .src button { padding: 8px 10px; border-radius: 9px; color: var(--muted); font-size: 13px; font-weight: 600; }
+  .src button.on { background: var(--line); color: var(--text); }
+  .list { display: flex; flex-direction: column; gap: 2px; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 12px; }
+  .row:active { background: var(--panel); }
+  .row.cur { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+  .row.cur .rt { color: var(--accent); }
+  .th { width: 46px; height: 46px; border-radius: 8px; background: var(--panel) center/cover no-repeat; flex: none; display: grid; place-items: center; color: var(--muted); }
+  .th.wide { width: 64px; height: 36px; }
+  .rx { flex: 1; min-width: 0; }
+  .rt { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ra { color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .add { width: 40px; height: 40px; display: grid; place-items: center; color: var(--muted); border-radius: 50%; flex: none; }
+  .empty { color: var(--muted); text-align: center; padding: 30px 10px; }
+  .toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 20px); transform: translateX(-50%); background: #222838; padding: 10px 16px;
+    border-radius: 12px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><span class="dot" id="dot"></span><span id="status">MusicPlayer</span></header>
+
+  <section class="now">
+    <div class="art" id="art">♪</div>
+    <div class="meta"><div class="title" id="title">—</div><div class="artist" id="artist"></div></div>
+    <div class="seek"><span id="cur">0:00</span><input type="range" id="seek" min="0" max="1000" value="0"><span id="dur">0:00</span></div>
+    <div class="controls">
+      <button class="sm" id="shuffle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/></svg></button>
+      <button class="md" id="prev"><svg viewBox="0 0 24 24"><path d="M19 4.5v15a1 1 0 0 1-1.5.86l-10-7.5a1 1 0 0 1 0-1.72l10-7.5A1 1 0 0 1 19 4.5z" fill="currentColor"/><path d="M5 5v14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      <button class="play" id="play"></button>
+      <button class="md" id="next"><svg viewBox="0 0 24 24"><path d="M5 4.5v15a1 1 0 0 0 1.5.86l10-7.5a1 1 0 0 0 0-1.72l-10-7.5A1 1 0 0 0 5 4.5z" fill="currentColor"/><path d="M19 5v14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      <button class="sm" id="fav"></button>
+    </div>
+    <div class="vol">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5z"/><path d="M16 9a5 5 0 0 1 0 6"/></svg>
+      <input type="range" id="vol" min="0" max="100" value="80">
+    </div>
+  </section>
+
+  <div class="tabs"><button data-tab="queue" class="on" id="tab-queue"></button><button data-tab="search" id="tab-search"></button></div>
+  <section id="pane-queue"><div class="list" id="queue"></div></section>
+  <section id="pane-search" hidden>
+    <div class="searchbar">
+      <input id="q" type="search" enterkeyhint="search" autocomplete="off">
+      <div class="src"><button data-src="local" class="on" id="src-local"></button><button data-src="yt">YouTube</button></div>
+    </div>
+    <div class="list" id="results"></div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const K = new URLSearchParams(location.search).get('k');
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const TX = {
+    es: { queue: 'Cola', search: 'Buscar', local: 'Mi música', ph: 'Canción, artista…', empty: 'La cola está vacía', none: 'Nada en reproducción',
+      noRes: 'Sin resultados', added: 'Añadido a la cola', playing: 'Reproduciendo', conn: 'Conectado', disc: 'Sin conexión con la PC…' },
+    en: { queue: 'Queue', search: 'Search', local: 'My music', ph: 'Song, artist…', empty: 'The queue is empty', none: 'Nothing playing',
+      noRes: 'No results', added: 'Added to queue', playing: 'Playing', conn: 'Connected', disc: 'Lost connection to the PC…' },
+  };
+  let S = null, lang = 'es', src = 'local', results = [], seeking = false;
+  const tx = (k) => (TX[lang] || TX.es)[k];
+  const ICON = {
+    play: '<svg viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.2-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z" fill="currentColor"/></svg>',
+    pause: '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/><rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/></svg>',
+    heart: (on) => `<svg viewBox="0 0 24 24" fill="${on ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>`,
+    plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  };
+  const fmt = (s) => { s = Math.max(0, Math.floor(s || 0)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = String(s % 60).padStart(2, '0'); return h ? `${h}:${String(m).padStart(2, '0')}:${x}` : `${m}:${x}`; };
+  const img = (it) => it.type === 'youtube' ? it.thumb : (it.hasCover ? `/api/cover?k=${K}&id=${encodeURIComponent(it.id)}` : '');
+  const toast = (m) => { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 1800); };
+  const cmd = (c) => fetch(`/api/cmd?k=${K}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(c) });
+  const fill = (el) => el.style.setProperty('--p', ((el.value - el.min) / (el.max - el.min) * 100) + '%');
+
+  function texts() {
+    document.documentElement.lang = lang;
+    $('tab-queue').textContent = tx('queue'); $('tab-search').textContent = tx('search');
+    $('src-local').textContent = tx('local'); $('q').placeholder = tx('ph');
+  }
+
+  function row(it, i, extra = '') {
+    const im = img(it);
+    return `<div class="row ${extra}" data-i="${i}">
+      <div class="th ${it.type === 'youtube' || it.media === 'video' ? 'wide' : ''}" style="${im ? `background-image:url('${esc(im)}')` : ''}">${im ? '' : '♪'}</div>
+      <div class="rx"><div class="rt">${esc(it.title)}</div><div class="ra">${esc(it.artist || '')}</div></div>
+      ${extra === 'res' ? `<button class="add" data-add="${i}">${ICON.plus}</button>` : ''}
+    </div>`;
+  }
+
+  function render() {
+    if (!S) return;
+    if (S.lang && S.lang !== lang) { lang = S.lang; texts(); }
+    document.documentElement.style.setProperty('--accent', S.accent || '#ff5c8a');
+    document.documentElement.style.setProperty('--accent2', S.accent2 || '#ffb347');
+    const c = S.current;
+    $('title').textContent = c ? c.title : tx('none');
+    $('artist').textContent = c ? (c.artist || '') : '';
+    const art = $('art'); const im = c ? img(c) : '';
+    art.className = 'art' + (c && (c.type === 'youtube' || c.media === 'video') ? ' wide' : '');
+    art.style.backgroundImage = im ? `url('${im}')` : ''; art.textContent = im ? '' : '♪';
+    $('play').innerHTML = S.paused ? ICON.play : ICON.pause;
+    $('fav').innerHTML = ICON.heart(S.fav); $('fav').classList.toggle('on', !!S.fav);
+    $('shuffle').classList.toggle('on', !!S.shuffle);
+    const v = $('vol'); if (document.activeElement !== v) { v.value = Math.round((S.volume ?? 0.8) * 100); fill(v); }
+    $('queue').innerHTML = (S.queue || []).length ? S.queue.map((it, i) => row(it, i, i === S.qIndex ? 'cur' : '')).join('') : `<div class="empty">${tx('empty')}</div>`;
+    document.querySelector('#queue .cur')?.scrollIntoView({ block: 'nearest' });
+  }
+
+  function tick() {
+    requestAnimationFrame(tick);
+    if (!S || seeking) return;
+    const t = Math.min(S.duration || 0, (S.time || 0) + (S.paused ? 0 : (Date.now() - S.at) / 1000));
+    $('cur').textContent = fmt(t); $('dur').textContent = fmt(S.duration);
+    const sk = $('seek'); sk.value = S.duration ? Math.round(t / S.duration * 1000) : 0; fill(sk);
+  }
+  requestAnimationFrame(tick);
+
+  function connect() {
+    const es = new EventSource(`/api/events?k=${K}`);
+    es.onmessage = (e) => { S = JSON.parse(e.data); S.at = Date.now(); $('dot').classList.remove('off'); $('status').textContent = 'MusicPlayer · ' + tx('conn'); render(); };
+    es.onerror = () => { $('dot').classList.add('off'); $('status').textContent = tx('disc'); };
+  }
+  connect();
+
+  $('play').onclick = () => { cmd({ action: 'toggle' }); if (S) { S.time += (Date.now() - S.at) / 1000; S.at = Date.now(); S.paused = !S.paused; render(); } };
+  $('next').onclick = () => cmd({ action: 'next' });
+  $('prev').onclick = () => cmd({ action: 'prev' });
+  $('shuffle').onclick = () => cmd({ action: 'shuffle' });
+  $('fav').onclick = () => cmd({ action: 'fav' });
+  $('vol').oninput = (e) => { fill(e.target); cmd({ action: 'volume', value: e.target.value / 100 }); };
+  $('seek').oninput = (e) => { seeking = true; fill(e.target); $('cur').textContent = fmt(e.target.value / 1000 * (S?.duration || 0)); };
+  $('seek').onchange = (e) => { const t = e.target.value / 1000 * (S?.duration || 0); cmd({ action: 'seek', time: t }); if (S) { S.time = t; S.at = Date.now(); } seeking = false; };
+  $('queue').onclick = (e) => { const r = e.target.closest('.row'); if (r) cmd({ action: 'jump', index: +r.dataset.i }); };
+
+  document.querySelectorAll('.tabs button').forEach((b) => b.onclick = () => {
+    document.querySelectorAll('.tabs button').forEach((x) => x.classList.toggle('on', x === b));
+    $('pane-queue').hidden = b.dataset.tab !== 'queue'; $('pane-search').hidden = b.dataset.tab !== 'search';
+    if (b.dataset.tab === 'search') $('q').focus();
+  });
+  document.querySelectorAll('.src button').forEach((b) => b.onclick = () => {
+    src = b.dataset.src; document.querySelectorAll('.src button').forEach((x) => x.classList.toggle('on', x === b)); doSearch();
+  });
+  let timer = null;
+  $('q').oninput = () => { if (src === 'local') { clearTimeout(timer); timer = setTimeout(doSearch, 250); } };
+  $('q').onkeydown = (e) => { if (e.key === 'Enter') { doSearch(); e.target.blur(); } };
+  async function doSearch() {
+    const q = $('q').value.trim();
+    if (!q) { $('results').innerHTML = ''; return; }
+    $('results').innerHTML = '<div class="empty">…</div>';
+    results = await (await fetch(`/api/search?k=${K}&src=${src === 'yt' ? 'yt' : 'local'}&q=${encodeURIComponent(q)}`)).json();
+    $('results').innerHTML = results.length ? results.map((it, i) => row(it, i, 'res')).join('') : `<div class="empty">${tx('noRes')}</div>`;
+  }
+  $('results').onclick = (e) => {
+    const add = e.target.closest('[data-add]');
+    if (add) { cmd({ action: 'enqueue', item: results[+add.dataset.add] }); return toast(tx('added')); }
+    const r = e.target.closest('.row');
+    if (r) { cmd({ action: 'play', item: results[+r.dataset.i] }); toast(tx('playing')); }
+  };
+  texts();
+})();
+</script>
+</body>
+</html>

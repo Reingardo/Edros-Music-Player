@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MusicPlayer — Pantalla</title>
+  <style>
+    :root { --accent: #ff5c8a; --accent2: #ffb347; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: #000; color: #fff; overflow: hidden;
+      font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif; user-select: none; cursor: default; }
+    .layer { position: absolute; inset: 0; display: none; }
+    body[data-mode="idle"] #idle,
+    body[data-mode="audio"] #audio-view,
+    body[data-mode="yt"] #yt-wrap { display: flex; }
+    video.local { width: 100%; height: 100%; object-fit: contain; background: #000; }
+    body[data-mode="video"] video.local.active { display: block; }
+    body[data-mode="audio"] video.local { display: block; opacity: 0; pointer-events: none; }
+
+    #idle { align-items: center; justify-content: center; flex-direction: column; gap: 14px;
+      background: radial-gradient(ellipse at 50% 40%, color-mix(in srgb, var(--accent) 12%, #000) 0%, #000 70%); }
+    #idle .logo { width: 84px; height: 84px; border-radius: 24px; display: grid; place-items: center; background: #ece6fb;
+      box-shadow: 0 10px 40px rgba(74, 11, 200, .45); }
+    #idle .logo img { width: 56px; height: 56px; display: block; }
+    #idle .hint { color: #8b8f9c; font-size: 15px; letter-spacing: .2px; text-align: center; }
+
+    #audio-view { flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+    #audio-bg { position: absolute; inset: -60px; background-size: cover; background-position: center;
+      filter: blur(60px) saturate(1.4) brightness(.45); transform: scale(1.1); transition: background-image .6s; }
+    #audio-bg.empty { background: radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--accent) 28%, #000) 0%, color-mix(in srgb, var(--accent) 8%, #000) 55%, #000 100%); filter: none; }
+    #viz-full { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+    .audio-inner { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2.2vh; width: 100%;
+      padding: 4vh 6vw 0; height: 100%; justify-content: center; }
+    #cover { width: min(38vh, 52vw); aspect-ratio: 1; border-radius: 16px; background: #1b1d24 center/cover no-repeat;
+      box-shadow: 0 30px 80px rgba(0,0,0,.6); display: grid; place-items: center; transition: transform .08s; }
+    #cover.empty::after { content: "♪"; font-size: min(14vh, 18vw); color: rgba(255,255,255,.25); }
+    body[data-viz="circle"] #cover { border-radius: 50%; }
+    #a-title { font-size: clamp(18px, 4.2vh, 44px); font-weight: 700; text-align: center; max-width: 90%;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 2px 20px rgba(0,0,0,.5); }
+    #a-artist { font-size: clamp(13px, 2.4vh, 24px); color: rgba(255,255,255,.75); margin-top: -1vh; }
+    #viz { width: 100%; height: 18vh; display: block; }
+    body[data-viz="circle"] #viz { visibility: hidden; }
+
+    #yt-wrap { background: #000; }
+    #yt-wrap iframe, #yt-player { width: 100%; height: 100%; border: 0; }
+    #yt-shield { position: absolute; inset: 0; } /* evita clics en el reproductor de YouTube (se controla desde la otra pantalla) */
+
+    /* Letras tipo karaoke */
+    #lyrics { position: absolute; left: 0; right: 0; bottom: 0; padding: 6vh 6vw 5vh; text-align: center; pointer-events: none; display: none;
+      flex-direction: column; gap: 1.2vh; z-index: 5; }
+    body.show-lyrics #lyrics.has { display: flex; }
+    body[data-mode="video"] #lyrics, body[data-mode="yt"] #lyrics { background: linear-gradient(transparent, rgba(0,0,0,.82) 45%); }
+    .audio-inner.lyr { padding-bottom: 26vh; gap: 1.6vh; }
+    .audio-inner.lyr #viz { display: none; }
+    .audio-inner.lyr #cover { width: min(30vh, 40vw); }
+    #lyrics .l { font-weight: 800; line-height: 1.2; text-shadow: 0 2px 18px rgba(0,0,0,.7); transition: opacity .25s, transform .25s; }
+    #lyrics .l.prev { font-size: clamp(9px, 2.4vh, 26px); opacity: .45; }
+    #lyrics .l.cur { font-size: clamp(13px, 5.2vh, 58px); position: relative; color: rgba(255,255,255,.35); }
+    #lyrics .l.cur .fill { position: absolute; inset: 0; color: #fff; -webkit-mask-image: linear-gradient(90deg, #000 var(--k, 0%), transparent calc(var(--k, 0%) + 4%));
+      background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    #lyrics .l.next { font-size: clamp(10px, 3vh, 32px); opacity: .7; }
+    @media (max-height: 400px) { #lyrics { padding: 3vh 4vw 2.5vh; gap: .6vh; } #lyrics .l.prev { display: none; } }
+    #lyrics .plain { font-size: clamp(13px, 2.4vh, 26px); opacity: .85; }
+
+    #party { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: 0; z-index: 4; }
+    body[data-viz="party"] #party { opacity: 1; }
+
+    #toast { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); background: rgba(20,20,26,.92);
+      border: 1px solid rgba(255,255,255,.1); padding: 10px 16px; border-radius: 10px; font-size: 14px; opacity: 0;
+      transition: opacity .25s; pointer-events: none; max-width: 80%; text-align: center; z-index: 9; }
+    #toast.show { opacity: 1; }
+  </style>
+</head>
+<body data-mode="idle" data-viz="bars">
+  <div id="idle" class="layer">
+    <div class="logo"><img src="edros-logo.svg" alt="Edros"></div>
+    <div class="hint" id="idle-hint"></div>
+  </div>
+
+  <video id="local-media" class="layer local active" playsinline preload="auto"></video>
+  <video id="local-media-b" class="layer local" playsinline preload="auto"></video>
+
+  <div id="audio-view" class="layer">
+    <div id="audio-bg" class="empty"></div>
+    <canvas id="viz-full"></canvas>
+    <div class="audio-inner">
+      <div id="cover" class="empty"></div>
+      <div id="a-title"></div>
+      <div id="a-artist"></div>
+      <canvas id="viz"></canvas>
+    </div>
+  </div>
+
+  <div id="yt-wrap" class="layer">
+    <div id="yt-player"></div>
+    <div id="yt-shield"></div>
+  </div>
+
+  <div id="party"></div>
+  <div id="lyrics"></div>
+  <div id="toast"></div>
+  <script src="stage.js"></script>
+</body>
+</html>

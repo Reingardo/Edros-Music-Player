@@ -1,0 +1,87 @@
+/* Tempo, la mascota */
+.mascot { position: fixed; width: 96px; height: 106px; z-index: 40; cursor: grab; user-select: none; touch-action: none;
+  --lvl: 0; --look-x: 0px; --look-y: 0px; transition: opacity .3s, transform .3s; }
+.mascot.hidden { opacity: 0; transform: scale(.4) translateY(30px); pointer-events: none; }
+.mascot.dragging { cursor: grabbing; }
+.mascot.dragging .tempo { transform: rotate(-8deg) scale(1.05); }
+.tempo { width: 100%; height: 100%; overflow: visible; display: block; transition: transform .2s; filter: drop-shadow(0 6px 10px rgba(0,0,0,.25)); }
+
+.tempo .t-shadow { fill: #000; opacity: .22; transform-origin: 60px 124px; transform: scaleX(calc(1 - var(--lvl) * .25)); }
+.tempo .t-bounce { transform-origin: 60px 118px;
+  transform: translateY(calc(var(--lvl) * -13px)) scale(calc(1 + var(--lvl) * .06), calc(1 - var(--lvl) * .05)); }
+.tempo .t-line { fill: none; stroke: #1b1d24; stroke-width: 3; stroke-linecap: round; }
+.tempo .t-band { fill: none; stroke: #1b1d24; stroke-width: 6; stroke-linecap: round; }
+.tempo .t-cup { fill: #1b1d24; }
+.tempo .t-dim { fill: #000; opacity: .18; }
+.tempo .t-stroke { fill: none; stroke: #1b1d24; stroke-width: 3.4; stroke-linecap: round; }
+.tempo .t-cheek { fill: #ff7fa6; opacity: .5; }
+.tempo .pupil { fill: #1b1d24; transform: translate(var(--look-x), var(--look-y)); transition: transform .15s; }
+.tempo .t-antenna { transform-origin: 60px 26px; }
+
+/* Partes visibles según el estado */
+.tempo .e-happy, .tempo .e-closed, .tempo .m-open, .tempo .m-sad { display: none; }
+.mascot.is-dance .e-open, .mascot.is-sleep .e-open { display: none; }
+.mascot.is-dance .e-happy { display: inline; }
+.mascot.is-sleep .e-closed { display: inline; }
+.mascot.is-dance .m-smile { display: none; }
+.mascot.is-dance .m-open { display: inline; animation: sing .45s ease-in-out infinite alternate; transform-origin: 60px 85px; }
+.mascot.r-sad .m-smile, .mascot.r-sad .m-open { display: none; }
+.mascot.r-sad .m-sad { display: inline; }
+.mascot.r-sad .e-happy { display: none; }
+.mascot.r-sad .e-open { display: inline; }
+
+/* Reposo: respira y parpadea */
+.mascot.is-idle .tempo .t-bounce, .preview-idle .t-bounce { animation: breathe 3.2s ease-in-out infinite; }
+.mascot.is-idle .e-open .eye, .preview-idle .e-open .eye { animation: blink 4.6s infinite; transform-box: fill-box; transform-origin: center; }
+/* Baile: balanceo además del rebote con el volumen */
+.mascot.is-dance .tempo { animation: sway 1.05s ease-in-out infinite; transform-origin: 50% 100%; }
+.mascot.is-dance .t-antenna { animation: antenna .52s ease-in-out infinite alternate; }
+/* Dormido */
+.mascot.is-sleep .tempo .t-bounce { animation: breathe 4.8s ease-in-out infinite; }
+.mascot.is-sleep .tempo { transform: rotate(-6deg); }
+
+/* Accesorios (Ajustes → Mascota) */
+.tempo .acc { display: none; }
+[data-acc="glasses"] .acc-glasses, [data-acc="cap"] .acc-cap, [data-acc="crown"] .acc-crown,
+[data-acc="bow"] .acc-bow, [data-acc="party"] .acc-party { display: inline; }
+[data-acc="cap"] .t-antenna, [data-acc="crown"] .t-antenna, [data-acc="party"] .t-antenna { display: none; }
+[data-acc="glasses"] .e-open, [data-acc="glasses"] .e-happy, [data-acc="glasses"] .e-closed { display: none !important; }
+
+/* Estilos de baile según el género */
+.mascot.is-dance[data-style="sway"] .tempo { animation: swaySlow 2.4s ease-in-out infinite; }
+.mascot.is-dance[data-style="sway"] .t-bounce { transform: translateY(calc(var(--lvl) * -5px)); }
+.mascot.is-dance[data-style="headbang"] .tempo { animation: headbang .42s ease-in-out infinite; transform-origin: 50% 90%; }
+.mascot.is-dance[data-style="headbang"] .t-antenna { animation-duration: .21s; }
+.mascot.is-dance[data-style="shimmy"] .tempo { animation: shimmy .8s ease-in-out infinite; }
+@keyframes swaySlow { 0%, 100% { transform: rotate(-5deg) translateX(-2px); } 50% { transform: rotate(5deg) translateX(2px); } }
+@keyframes headbang { 0%, 100% { transform: rotate(3deg) translateY(0); } 50% { transform: rotate(-12deg) translateY(4px); } }
+@keyframes shimmy { 0%, 100% { transform: translateX(-7px) rotate(-4deg); } 25% { transform: translateX(0) rotate(0); } 50% { transform: translateX(7px) rotate(4deg); } 75% { transform: translateX(0) rotate(0); } }
+
+/* Reacciones */
+.mascot.r-wow .tempo { animation: hop .7s cubic-bezier(.3, 1.6, .5, 1); }
+.mascot.r-sad .tempo { animation: droop 2.4s ease; }
+
+@keyframes breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.025, .975) translateY(1px); } }
+@keyframes blink { 0%, 93%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+@keyframes sway { 0%, 100% { transform: rotate(-7deg); } 50% { transform: rotate(7deg); } }
+@keyframes antenna { from { transform: rotate(-14deg); } to { transform: rotate(16deg); } }
+@keyframes sing { from { transform: scaleY(.55); } to { transform: scaleY(1.1); } }
+@keyframes hop { 0% { transform: translateY(0) scale(1); } 30% { transform: translateY(-22px) scale(.95, 1.06); } 60% { transform: translateY(0) scale(1.08, .92); } 100% { transform: none; } }
+@keyframes droop { 0%, 100% { transform: none; } 20%, 80% { transform: translateY(5px) rotate(-4deg) scale(1, .94); } }
+
+/* Bocadillo */
+.m-bubble { position: absolute; bottom: calc(100% + 6px); right: 0; max-width: 240px; width: max-content; padding: 8px 12px; border-radius: 14px 14px 4px 14px;
+  background: var(--toast-bg); border: 1px solid var(--line); color: var(--text); font-size: 12.5px; line-height: 1.35; box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  opacity: 0; transform: translateY(6px) scale(.95); transform-origin: bottom right; transition: opacity .2s, transform .2s; pointer-events: none; }
+.mascot.talking .m-bubble { opacity: 1; transform: none; }
+
+/* Notas y "z" flotando */
+.m-fx { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.fx { position: absolute; top: 10%; font-weight: 800; animation: floatUp 2.2s ease-out forwards; }
+.fx.note { color: var(--accent); font-size: 18px; text-shadow: 0 2px 6px rgba(0,0,0,.25); }
+.fx.zzz { color: var(--muted); font-size: 15px; top: 5%; }
+@keyframes floatUp { 0% { opacity: 0; transform: translate(0, 0) scale(.6); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), -60px) scale(1.15); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .mascot * { animation: none !important; }
+}

@@ -1,0 +1,65 @@
+{
+  "name": "musicplayer",
+  "productName": "MusicPlayer",
+  "version": "1.2.0",
+  "description": "Edros Music Player: reproductor de música y video para Windows con YouTube sin anuncios, preamplificador, ecualizador, letras, doble pantalla y control desde el celular.",
+  "author": "Edros",
+  "license": "MIT",
+  "homepage": "https://github.com/Reingardo/Edros-Music-Player#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Reingardo/Edros-Music-Player.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Reingardo/Edros-Music-Player/issues"
+  },
+  "type": "module",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis --x64"
+  },
+  "devDependencies": {
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0"
+  },
+  "dependencies": {
+    "music-metadata": "^12.8.1",
+    "node-id3": "^0.2.9",
+    "qrcode": "^1.5.4",
+    "youtubei.js": "^18.3.0"
+  },
+  "build": {
+    "appId": "com.edros.musicplayer",
+    "productName": "MusicPlayer",
+    "copyright": "Edros",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "MusicPlayer",
+      "artifactName": "MusicPlayer-Setup-${version}.${ext}"
+    }
+  }
+}

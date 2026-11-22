@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es" data-theme="sunset">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MusicPlayer</title>
+  <link rel="stylesheet" href="control.css">
+  <link rel="stylesheet" href="mascot.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Barra lateral -->
+    <aside id="sidebar">
+      <div class="brand">
+        <div class="brand-logo"><img src="edros-logo.svg" alt="Edros"></div>
+        <span>MusicPlayer</span>
+      </div>
+
+      <nav class="nav">
+        <div class="nav-title" data-i18n="nav.library"></div>
+        <button class="nav-item" data-view="all"><i data-icon="library"></i><span data-i18n="nav.all"></span><span class="count" id="c-all"></span></button>
+        <button class="nav-item" data-view="music"><i data-icon="music"></i><span data-i18n="nav.music"></span><span class="count" id="c-music"></span></button>
+        <button class="nav-item" data-view="videos"><i data-icon="film"></i><span data-i18n="nav.videos"></span><span class="count" id="c-videos"></span></button>
+        <button class="nav-item" data-view="youtube"><i data-icon="youtube"></i><span>YouTube</span></button>
+        <button class="nav-item" data-view="favorites"><i data-icon="heart"></i><span data-i18n="nav.favorites"></span><span class="count" id="c-fav"></span></button>
+        <button class="nav-item" data-view="recent"><i data-icon="clock"></i><span data-i18n="nav.recent"></span></button>
+        <button class="nav-item" data-view="stats"><i data-icon="chart"></i><span data-i18n="nav.stats"></span></button>
+        <button class="nav-item" data-view="sources"><i data-icon="drive"></i><span data-i18n="nav.sources"></span></button>
+        <div class="nav-title" data-i18n="nav.sound"></div>
+        <button class="nav-item" data-view="eq"><i data-icon="sliders"></i><span data-i18n="nav.preamp"></span><span class="pill" id="eq-pill"></span></button>
+      </nav>
+
+      <div class="folders-head">
+        <div class="nav-title" data-i18n="nav.myFolders"></div>
+        <div style="display:flex;gap:2px">
+          <button class="icon-btn sm" id="btn-import-pl" data-i18n-title="pl.import"><i data-icon="youtube"></i></button>
+          <button class="icon-btn sm" id="btn-new-folder" data-i18n-title="folder.new"><i data-icon="folderPlus"></i></button>
+        </div>
+      </div>
+      <div id="folder-tree" class="folder-tree"></div>
+
+      <button class="nav-item settings-link" data-view="settings"><i data-icon="gear"></i><span data-i18n="nav.settings"></span></button>
+    </aside>
+
+    <!-- Centro -->
+    <main id="main">
+      <header class="topbar">
+        <div class="search">
+          <i data-icon="search"></i>
+          <input id="search" type="search" autocomplete="off" spellcheck="false">
+          <div class="seg" id="search-scope">
+            <button data-scope="local" class="on" data-i18n="scope.local"></button>
+            <button data-scope="youtube">YouTube</button>
+          </div>
+        </div>
+        <button class="icon-btn gear-btn" id="btn-settings" data-i18n-title="nav.settings"><i data-icon="gear"></i></button>
+      </header>
+      <section id="view"></section>
+    </main>
+
+    <!-- Derecha: video + cola -->
+    <aside id="right">
+      <div id="stage-box">
+        <div id="stage-slot"></div>
+        <div id="stage-dual">
+          <i data-icon="monitors"></i>
+          <div class="sd-title" data-i18n="dual.title"></div>
+          <div class="sd-sub" data-i18n="dual.sub"></div>
+          <button class="btn ghost" id="btn-single" data-i18n="dual.back"></button>
+        </div>
+      </div>
+      <div class="queue-head">
+        <div>
+          <div class="q-title" data-i18n="queue.title"></div>
+          <div class="q-sub" id="q-sub"></div>
+        </div>
+        <button class="icon-btn sm" id="btn-clear-queue" data-i18n-title="queue.clear"><i data-icon="trash"></i></button>
+      </div>
+      <div id="queue" class="queue"></div>
+    </aside>
+
+    <!-- Barra del reproductor -->
+    <footer id="player">
+      <div class="now">
+        <div class="now-art" id="now-art"></div>
+        <div class="now-text">
+          <div class="now-title" id="now-title"></div>
+          <div class="now-artist" id="now-artist"></div>
+        </div>
+        <button class="icon-btn fav-btn" id="btn-fav" data-i18n-title="btn.fav"><i data-icon="heart"></i></button>
+      </div>
+
+      <div class="transport">
+        <div class="buttons">
+          <button class="icon-btn" id="btn-shuffle" data-i18n-title="btn.shuffle"><i data-icon="shuffle"></i></button>
+          <button class="icon-btn" id="btn-prev" data-i18n-title="btn.prev"><i data-icon="prev"></i></button>
+          <button class="play-btn" id="btn-play" data-i18n-title="btn.play"><i data-icon="play"></i></button>
+          <button class="icon-btn" id="btn-next" data-i18n-title="btn.next"><i data-icon="next"></i></button>
+          <button class="icon-btn" id="btn-repeat"><i data-icon="repeat"></i></button>
+        </div>
+        <div class="seekrow">
+          <span class="time" id="t-cur">0:00</span>
+          <input type="range" id="seek" min="0" max="1000" value="0" step="1" class="range">
+          <span class="time" id="t-dur">0:00</span>
+        </div>
+      </div>
+
+      <div class="extras">
+        <button class="icon-btn" id="btn-lyrics" data-i18n-title="btn.lyrics"><i data-icon="mic"></i></button>
+        <button class="icon-btn" id="btn-sleep" data-i18n-title="btn.sleep"><i data-icon="moon"></i><span class="badge-dot" id="sleep-badge"></span></button>
+        <button class="icon-btn" id="btn-eq" data-i18n-title="btn.eq"><i data-icon="sliders"></i></button>
+        <button class="icon-btn" id="btn-mini" data-i18n-title="btn.mini"><i data-icon="pip"></i></button>
+        <button class="icon-btn" id="btn-dual"><i data-icon="monitors"></i></button>
+        <button class="icon-btn" id="btn-mute" data-i18n-title="btn.mute"><i data-icon="volume"></i></button>
+        <input type="range" id="volume" min="0" max="100" value="80" class="range vol">
+      </div>
+    </footer>
+  </div>
+
+  <div id="mascot-root"></div>
+
+  <div id="modal" class="modal" hidden>
+    <form class="modal-card" id="modal-form">
+      <div class="modal-title" id="modal-title"></div>
+      <div class="modal-text" id="modal-text"></div>
+      <input id="modal-input" type="text" autocomplete="off" spellcheck="false">
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="modal-cancel" data-i18n="modal.cancel"></button>
+        <button type="submit" class="btn primary" id="modal-ok"></button>
+      </div>
+    </form>
+  </div>
+
+  <div id="tag-modal" class="modal" hidden>
+    <form class="modal-card wide" id="tag-form">
+      <div class="modal-title" data-i18n="tags.title"></div>
+      <div class="modal-text" id="tag-file"></div>
+      <div class="tag-grid">
+        <button type="button" class="tag-cover" id="tag-cover"><span data-i18n="tags.cover"></span></button>
+        <div class="tag-fields">
+          <label><span data-i18n="tags.fTitle"></span><input id="tag-title" type="text" autocomplete="off"></label>
+          <label><span data-i18n="tags.fArtist"></span><input id="tag-artist" type="text" autocomplete="off"></label>
+          <label><span data-i18n="tags.fAlbum"></span><input id="tag-album" type="text" autocomplete="off"></label>
+          <label><span data-i18n="tags.fGenre"></span><input id="tag-genre" type="text" autocomplete="off"></label>
+        </div>
+      </div>
+      <div class="modal-text small" id="tag-note"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="tag-cancel" data-i18n="modal.cancel"></button>
+        <button type="submit" class="btn primary" id="tag-ok" data-i18n="modal.save"></button>
+      </div>
+    </form>
+  </div>
+
+  <div id="dropzone"><div><i data-icon="plus"></i><span data-i18n="drop.hint"></span></div></div>
+  <div id="toasts"></div>
+
+  <script src="icons.js"></script>
+  <script src="i18n.js"></script>
+  <script src="themes.js"></script>
+  <script src="mascot.js"></script>
+  <script src="control.js"></script>
+</body>
+</html>
