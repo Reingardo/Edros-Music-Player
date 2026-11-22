@@ -615,7 +615,9 @@ function rescan() {
 // ---------- Arranque ----------
 if (process.env.MP_USER_DATA) app.setPath('userData', process.env.MP_USER_DATA); // perfil aparte para pruebas
 if (!app.requestSingleInstanceLock()) app.quit();
-if (process.platform === 'win32') app.setAppUserModelId('com.edros.musicplayer'); // icono propio en la barra de tareas
+// Identificador de la barra de tareas: la versión de desarrollo (electron.exe) usa otro distinto,
+// para que Windows no asocie el icono de Electron a la app instalada.
+if (process.platform === 'win32') app.setAppUserModelId(app.isPackaged ? 'com.edros.musicplayer' : 'com.edros.musicplayer.dev');
 app.on('second-instance', showMain);
 
 app.whenReady().then(async () => {
